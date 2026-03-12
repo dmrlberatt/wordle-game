@@ -16,7 +16,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^2.0.0 # Bunu 3.0.0'dan 2.0.0'a düşürdük
 
 flutter:
   uses-material-design: true

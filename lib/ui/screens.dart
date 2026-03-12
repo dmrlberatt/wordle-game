@@ -13,7 +13,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: darkBg,
       appBar: AppBar(
-        title: const Text('WORDLE', style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold)),
+        title: const Text('WORDSE', style: TextStyle(letterSpacing: 4, fontWeight: FontWeight.bold)),
         backgroundColor: darkBg,
         elevation: 0,
       ),

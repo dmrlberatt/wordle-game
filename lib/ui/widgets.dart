@@ -153,7 +153,12 @@ class VirtualKeyboard extends ConsumerWidget {
         margin: const EdgeInsets.symmetric(horizontal: 2),
         padding: EdgeInsets.symmetric(horizontal: isSpecial ? 12 : 0),
         // MediaQuery için artık context burada mevcut
-        width: isSpecial ? null : (MediaQuery.of(context).size.width / 11) - 4,
+       // Genişlik hesaplamasını Web/Mobil uyumlu hale getiriyoruz
+        width: isSpecial 
+            ? null 
+            : (MediaQuery.of(context).size.width > 600 
+                ? (600 / 11) - 4  // Web'de (geniş ekran) tuşları 600px'e göre sınırla
+                : (MediaQuery.of(context).size.width / 11) - 4), // Mobilde tam genişlik kullan
         height: 50,
         decoration: BoxDecoration(
           color: bgColor, 

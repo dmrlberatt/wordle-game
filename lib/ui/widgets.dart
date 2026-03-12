@@ -32,7 +32,7 @@ class WordGrid extends ConsumerWidget {
           }),
         );
 
-        // Shake Animasyonu (Sadece hatalı kelimede mevcut satır titrer)
+        // Shake Animasyonu
         if (isCurrentRow && state.shakeError) {
           rowWidget = rowWidget.animate().shakeX(hz: 4, amount: 5, duration: 400.ms);
         }
@@ -43,25 +43,29 @@ class WordGrid extends ConsumerWidget {
   }
 
   Widget _buildCell(String letter, LetterStatus status, bool isSubmitted, bool isRevealing, int colIndex) {
-    Color bgColor = Colors.transparent;
-    Color borderColor = absentColor;
+    Color targetBgColor = Colors.transparent;
+    Color targetBorderColor = absentColor;
 
-    if (isSubmitted && !isRevealing) {
-      if (status == LetterStatus.correct) bgColor = correctColor;
-      else if (status == LetterStatus.present) bgColor = presentColor;
-      else bgColor = absentColor;
-      borderColor = bgColor;
+    if (isSubmitted) {
+      if (status == LetterStatus.correct) targetBgColor = correctColor;
+      else if (status == LetterStatus.present) targetBgColor = presentColor;
+      else targetBgColor = absentColor;
+      targetBorderColor = targetBgColor;
     } else if (letter != ' ') {
-      borderColor = Colors.grey.shade500;
+      targetBorderColor = Colors.grey.shade500;
     }
+
+    // Animasyon sırasında eski rengi tut, flip bitince yeni rengi göster
+    Color displayBgColor = isRevealing ? Colors.transparent : targetBgColor;
+    Color displayBorderColor = isRevealing ? Colors.grey.shade500 : targetBorderColor;
 
     Widget cell = Container(
       width: 60,
       height: 60,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: bgColor,
-        border: Border.all(color: borderColor, width: 2),
+        color: displayBgColor,
+        border: Border.all(color: displayBorderColor, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
       alignment: Alignment.center,
@@ -71,19 +75,23 @@ class WordGrid extends ConsumerWidget {
       ),
     );
 
-    // Pop Animasyonu (Harf girildiğinde)
     if (!isSubmitted && letter != ' ') {
       cell = cell.animate(key: ValueKey(letter)).scale(duration: 100.ms, begin: const Offset(0.8, 0.8));
     }
 
-    // 3D Flip Animasyonu (Enter'a basıldığında)
     if (isRevealing) {
       cell = cell.animate(delay: (colIndex * 300).ms)
           .flipV(duration: 300.ms, curve: Curves.easeIn)
-          .callback(callback: (_) {
-            // Flip yarısına geldiğinde rengi değiştirme hilesi
-          });
-          // Not: Tam renk değişimi için flutter_animate'in color effect'i eklenebilir.
+          .swap(
+            // Takla atmanın tam ortasında (150.ms) renklendirilmiş yeni kutuya geçiş yap!
+            builder: (_, __) => Container(
+              width: 60, height: 60,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(color: targetBgColor, border: Border.all(color: targetBorderColor, width: 2), borderRadius: BorderRadius.circular(8)),
+              alignment: Alignment.center,
+              child: Text(letter, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+          );
     }
 
     return cell;
@@ -100,24 +108,29 @@ class VirtualKeyboard extends ConsumerWidget {
         ? [['E','R','T','Y','U','I','O','P','Ğ','Ü'], ['A','S','D','F','G','H','J','K','L','Ş','İ'], ['ENTER','Z','X','C','V','B','N','M','Ö','Ç','BACKSPACE']]
         : [['Q','W','E','R','T','Y','U','I','O','P'], ['A','S','D','F','G','H','J','K','L'], ['ENTER','Z','X','C','V','B','N','M','BACKSPACE']];
 
+    final keyboardColors = ref.read(gameProvider.notifier).getKeyboardColors();
+
     return Column(
       children: rows.map((row) => Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: row.map((key) => _buildKey(key, ref, state)).toList(),
+          children: row.map((key) => _buildKey(key, ref, state, keyboardColors)).toList(),
         ),
       )).toList(),
     );
   }
 
-  Widget _buildKey(String key, WidgetRef ref, GameState state) {
+  Widget _buildKey(String key, WidgetRef ref, GameState state, Map<String, LetterStatus> keyboardColors) {
     bool isSpecial = key == 'ENTER' || key == 'BACKSPACE';
     
-    // Klavye renklerini hesapla (isRevealing bitene kadar güncelleme)
     Color bgColor = darkSurface;
-    if (!state.isRevealing) {
-      // TODO: Girilen kelimelere göre klavye harf renklerini (Yeşil/Sarı/Gri) hesapla
+    
+    // Sadece animasyon bitince klavye renklerini güncelle
+    if (!state.isRevealing && !isSpecial) {
+      if (keyboardColors[key] == LetterStatus.correct) bgColor = correctColor;
+      else if (keyboardColors[key] == LetterStatus.present) bgColor = presentColor;
+      else if (keyboardColors[key] == LetterStatus.absent) bgColor = absentColor;
     }
 
     return GestureDetector(
@@ -125,7 +138,7 @@ class VirtualKeyboard extends ConsumerWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 2),
         padding: EdgeInsets.symmetric(horizontal: isSpecial ? 12 : 0),
-        width: isSpecial ? null : 32,
+        width: isSpecial ? null : (MediaQuery.of(context).size.width / 11) - 4, // Ekrana daha iyi sığması için
         height: 50,
         decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(6)),
         alignment: Alignment.center,

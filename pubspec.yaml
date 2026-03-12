@@ -1,0 +1,6 @@
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.4.9
+  flutter_animate: ^4.2.0 
+  uuid: ^4.2.2

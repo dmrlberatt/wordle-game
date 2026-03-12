@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/models.dart';
 
@@ -8,6 +9,7 @@ class GameState {
   final bool isRevealing;
   final bool shakeError;
   final Language language;
+  final GameStatus status; // YENİ
 
   GameState({
     this.solution = '',
@@ -16,9 +18,10 @@ class GameState {
     this.isRevealing = false,
     this.shakeError = false,
     this.language = Language.tr,
+    this.status = GameStatus.playing,
   });
 
-  GameState copyWith({String? solution, List<String>? guesses, String? currentGuess, bool? isRevealing, bool? shakeError, Language? language}) {
+  GameState copyWith({String? solution, List<String>? guesses, String? currentGuess, bool? isRevealing, bool? shakeError, Language? language, GameStatus? status}) {
     return GameState(
       solution: solution ?? this.solution,
       guesses: guesses ?? this.guesses,
@@ -26,6 +29,7 @@ class GameState {
       isRevealing: isRevealing ?? this.isRevealing,
       shakeError: shakeError ?? this.shakeError,
       language: language ?? this.language,
+      status: status ?? this.status,
     );
   }
 }
@@ -37,8 +41,8 @@ class GameNotifier extends StateNotifier<GameState> {
 
   void startNewGame() {
     final words = state.language == Language.tr ? trWords : enWords;
-    final solution = words[0]; // Rastgele seçilecek
-    state = state.copyWith(solution: solution, guesses: [], currentGuess: '', isRevealing: false, shakeError: false);
+    final solution = words[Random().nextInt(words.length)]; // Rastgele kelime
+    state = state.copyWith(solution: solution, guesses: [], currentGuess: '', isRevealing: false, shakeError: false, status: GameStatus.playing);
   }
 
   void setLanguage(Language lang) {
@@ -47,7 +51,7 @@ class GameNotifier extends StateNotifier<GameState> {
   }
 
   void onKeyPress(String key) async {
-    if (state.isRevealing || state.guesses.length >= 6) return;
+    if (state.isRevealing || state.status != GameStatus.playing) return;
 
     if (key == 'ENTER') {
       if (state.currentGuess.length != 5) {
@@ -67,9 +71,18 @@ class GameNotifier extends StateNotifier<GameState> {
         isRevealing: true,
       );
 
-      // 5 harf * 300ms = 1500ms animasyon süresi
+      // Animasyonun bitmesini bekle
       await Future.delayed(const Duration(milliseconds: 1500));
-      state = state.copyWith(isRevealing: false);
+      
+      // Kazanma veya kaybetme kontrolü
+      GameStatus newStatus = GameStatus.playing;
+      if (state.guesses.last == state.solution) {
+        newStatus = GameStatus.won;
+      } else if (state.guesses.length >= 6) {
+        newStatus = GameStatus.lost;
+      }
+
+      state = state.copyWith(isRevealing: false, status: newStatus);
 
     } else if (key == 'BACKSPACE') {
       if (state.currentGuess.isNotEmpty) {
@@ -103,6 +116,29 @@ class GameNotifier extends StateNotifier<GameState> {
       }
     }
     return result;
+  }
+
+  // Klavyedeki harflerin rengini bulmak için yeni metod
+  Map<String, LetterStatus> getKeyboardColors() {
+    Map<String, LetterStatus> keyboardColors = {};
+    for (String guess in state.guesses) {
+      List<LetterStatus> statuses = evaluateGuess(guess);
+      for (int i = 0; i < 5; i++) {
+        String letter = guess[i];
+        LetterStatus currentStatus = statuses[i];
+        
+        // Eğer zaten doğru (yeşil) ise üzerine yazma
+        if (keyboardColors[letter] == LetterStatus.correct) continue;
+        
+        // Eğer yeni durum eskisinden daha iyiyse güncelle
+        if (currentStatus == LetterStatus.correct || 
+           (currentStatus == LetterStatus.present && keyboardColors[letter] != LetterStatus.correct) ||
+           (currentStatus == LetterStatus.absent && keyboardColors[letter] == null)) {
+          keyboardColors[letter] = currentStatus;
+        }
+      }
+    }
+    return keyboardColors;
   }
 }
 

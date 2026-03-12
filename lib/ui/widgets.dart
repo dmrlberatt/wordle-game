@@ -75,9 +75,11 @@ class WordGrid extends ConsumerWidget {
       ),
     );
 
-    if (!isSubmitted && letter != ' ') {
-      cell = cell.animate(key: ValueKey(letter)).scale(duration: 100.ms, begin: const Offset(0.8, 0.8));
-    }
+  if (!isSubmitted && letter != ' ') {
+  // Sadece letter değil, colIndex de ekleyerek benzersiz (unique) yapıyoruz
+  cell = cell.animate(key: ValueKey('$letter-$colIndex'))
+             .scale(duration: 100.ms, begin: const Offset(0.8, 0.8));
+}
 
     if (isRevealing) {
       cell = cell.animate(delay: (colIndex * 300).ms)

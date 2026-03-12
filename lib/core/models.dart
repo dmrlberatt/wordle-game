@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 enum Language { tr, en }
 enum LetterStatus { correct, present, absent, idle }
 enum GameMode { single, multi }
-enum GameStatus { playing, won, lost } 
+enum GameStatus { playing, won, lost }
 
 class Player {
   final String id;
@@ -25,11 +25,13 @@ class Room {
   Room({required this.id, required this.code, required this.status, required this.players, required this.solution, required this.language});
 }
 
-const List<String> trWords = ["KALEM", "KİTAP", "SEVGİ", "DÜNYA", "GÜNEŞ", "MASAL", "ROMAN"];
-const List<String> enWords = ["APPLE", "BRAIN", "CHAIR", "DANCE", "EAGLE", "SMART", "WATER"];
+// Kelimeler artık JSON'dan yüklenecek
+List<String> trWords = [];
+List<String> enWords = [];
 
-const Color darkBg = Color(0xFF0F172A); 
-const Color darkSurface = Color(0xFF1E293B); 
-const Color correctColor = Color(0xFF10B981); 
-const Color presentColor = Color(0xFFF59E0B); 
-const Color absentColor = Color(0xFF334155);
+// 🎨 PREMIUM KOYU TEMA RENKLERİ
+const Color darkBg = Color(0xFF0F172A); // Koyu Slate (Gece Laciverti)
+const Color darkSurface = Color(0xFF1E293B); // Daha açık Slate (Klavye tuşları)
+const Color correctColor = Color(0xFF10B981); // Zümrüt Yeşili (Premium Doğru)
+const Color presentColor = Color(0xFFF59E0B); // Kehribar Sarısı (Premium Yanlış Yer)
+const Color absentColor = Color(0xFF334155); // Mat Koyu Gri (Olmayan harf)

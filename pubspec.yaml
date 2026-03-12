@@ -1,22 +1,37 @@
-name: wordle-game
-description: A new Flutter project.
-publish_to: 'none'
+name: wordle_game
+description: "A Flutter Wordle clone developed for web and mobile."
+# Projenin bir paket olarak yayınlanmasını engeller
+publish_to: 'none' 
+
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.19.2 <4.0.0'
+  # IDX modern olduğu için en güncel SDK sınırlarını kullanabiliriz
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
+  
+  # Senin kullandığın paketler
   flutter_riverpod: ^2.4.9
   flutter_animate: ^4.2.0
   uuid: ^4.2.2
+  
+  # Tasarım için gerekli olan ikon paketi (standarttır, eklemen iyi olur)
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0 # Bunu 3.0.0'dan 2.0.0'a düşürdük
+  
+  # Kod kalitesi için standart lint kuralları
+  flutter_lints: ^3.0.0
 
 flutter:
+  # Material Design 3 özelliklerini kullanmanı sağlar
   uses-material-design: true
+
+  # Eğer resim veya font ekleyeceksen buranın altına eklemelisin:
+  # assets:
+  #   - assets/images/

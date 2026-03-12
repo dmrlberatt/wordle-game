@@ -101,33 +101,48 @@ class WordGrid extends ConsumerWidget {
 class VirtualKeyboard extends ConsumerWidget {
   const VirtualKeyboard({super.key});
 
- // lib/ui/widgets.dart içindeki ilgili kısım:
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ... diğer kodlar aynı
+    final state = ref.watch(gameProvider);
+    final keyboardColors = ref.read(gameProvider.notifier).getKeyboardColors();
+
+    final rows = state.language == Language.tr 
+        ? [
+            ['E','R','T','Y','U','I','O','P','Ğ','Ü'], 
+            ['A','S','D','F','G','H','J','K','L','Ş','İ'], 
+            ['ENTER','Z','X','C','V','B','N','M','Ö','Ç','BACKSPACE']
+          ]
+        : [
+            ['Q','W','E','R','T','Y','U','I','O','P'], 
+            ['A','S','D','F','G','H','J','K','L'], 
+            ['ENTER','Z','X','C','V','B','N','M','BACKSPACE']
+          ];
+
     return Column(
       children: rows.map((row) => Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          // BURAYA context eklendi:
           children: row.map((key) => _buildKey(context, key, ref, state, keyboardColors)).toList(),
         ),
       )).toList(),
     );
   }
 
-  // Metod imzasına BuildContext context eklendi:
   Widget _buildKey(BuildContext context, String key, WidgetRef ref, GameState state, Map<String, LetterStatus> keyboardColors) {
     bool isSpecial = key == 'ENTER' || key == 'BACKSPACE';
     
     Color bgColor = darkSurface;
     
+    // Sadece animasyon bitince klavye renklerini güncelle
     if (!state.isRevealing && !isSpecial) {
-      if (keyboardColors[key] == LetterStatus.correct) bgColor = correctColor;
-      else if (keyboardColors[key] == LetterStatus.present) bgColor = presentColor;
-      else if (keyboardColors[key] == LetterStatus.absent) bgColor = absentColor;
+      if (keyboardColors[key] == LetterStatus.correct) {
+        bgColor = correctColor;
+      } else if (keyboardColors[key] == LetterStatus.present) {
+        bgColor = presentColor;
+      } else if (keyboardColors[key] == LetterStatus.absent) {
+        bgColor = absentColor;
+      }
     }
 
     return GestureDetector(
@@ -135,15 +150,23 @@ class VirtualKeyboard extends ConsumerWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 2),
         padding: EdgeInsets.symmetric(horizontal: isSpecial ? 12 : 0),
-        // Artık 'context' burada tanımlı olduğu için hata vermeyecek:
-        width: isSpecial ? null : (MediaQuery.of(context).size.width / 11) - 4, 
+        // MediaQuery için artık context burada mevcut
+        width: isSpecial ? null : (MediaQuery.of(context).size.width / 11) - 4,
         height: 50,
-        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(6)),
+        decoration: BoxDecoration(
+          color: bgColor, 
+          borderRadius: BorderRadius.circular(6)
+        ),
         alignment: Alignment.center,
         child: Text(
           key == 'BACKSPACE' ? '⌫' : key,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(
+            color: Colors.white, 
+            fontWeight: FontWeight.bold, 
+            fontSize: 14
+          ),
         ),
       ),
     );
   }
+}

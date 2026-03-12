@@ -32,6 +32,10 @@ flutter:
   # Material Design 3 özelliklerini kullanmanı sağlar
   uses-material-design: true
 
+  # JSON veritabanımızı ekliyoruz
+  assets:
+    - assets/words_tr.json
+    - assets/words_en.json
   # Eğer resim veya font ekleyeceksen buranın altına eklemelisin:
   # assets:
   #   - assets/images/
